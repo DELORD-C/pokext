@@ -1,0 +1,30 @@
+.editArrow {
+    height: 11px;
+    margin: 0px 0px 0 5px;
+}
+
+.switchmenu > button {
+    position: relative;
+}
+
+.editTeamArrow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+}
+
+.battle {
+    position: relative;
+}
+
+.typeLink {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: azure;
+    color: black!important;
+    border: 1px solid black;
+    text-decoration: none;
+    padding: 4px 24px;
+}

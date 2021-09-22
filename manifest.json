@@ -1,0 +1,37 @@
+{
+    "name": "Pokext",
+    "description": "Play Showdown !",
+    "version": "1.0",
+    "manifest_version": 3,
+    "permissions": ["storage", "declarativeContent"],
+    "action": {
+        "default_icon": {
+            "16": "/images/pokext16.png",
+            "32": "/images/pokext32.png",
+            "48": "/images/pokext48.png",
+            "128": "/images/pokext128.png"
+        },
+        "default_popup": "views/popup.html"
+    },
+    "icons": {
+        "16": "/images/pokext16.png",
+        "32": "/images/pokext32.png",
+        "48": "/images/pokext48.png",
+        "128": "/images/pokext128.png"
+    },
+    "content_scripts": [{
+        "matches": ["*://play.pokemonshowdown.com/battle*"],
+        "all_frames": true,
+        "js": [
+            "js/jquery.js",
+            "js/script.js"
+        ],
+        "css": [
+            "css/main.css"
+        ]
+    }],
+    "web_accessible_resources": [{ 
+        "resources": ["images/green.png", "images/red.png", "images/cross.png", "images/null.png"],
+        "matches": ["<all_urls>"]
+    }]
+}
