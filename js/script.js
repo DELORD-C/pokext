@@ -1,5 +1,4 @@
 let efficiency,
-    turn = 0,
     regex = /^(\w| |-|_|:|\.)+(?= <img | <small)/g,
     regexTeam = /(?!<\/span>)(\w| |-|_|:|\.)+(?=<span|$|<img |<div )/g,
     ennemi = {name: null, infos: null},
@@ -9,15 +8,13 @@ let efficiency,
     extPath = "chrome-extension://" + chrome.runtime.id + "/",
     intCheck = setInterval(function(){
         if (typeof($('.lstatbar').children().first().html()) != 'undefined' && typeof($('.rstatbar').children().first().html()) != 'undefined') {
-            if (ennemi.name != $('.lstatbar').children().first().html().match(regex)[0].toLowerCase() || turn != $('.turn').html()) {
-                ennemi.name = $('.lstatbar').children().first().html().match(regex)[0].toLowerCase();
-                player.name = $('.rstatbar').children().first().html().match(regex)[0].toLowerCase();
-                if (document.getElementsByClassName('movemenu').length > 0 && calculating == false) {
-                    console.log(player.name + " VS " + ennemi.name);
-                    turn = $('.turn').html();
-                    calculating = true;
-                    checkAttacks();
-                }
+            ennemi.name = $('.lstatbar').children().first().html().match(regex)[0].toLowerCase();
+            player.name = $('.rstatbar').children().first().html().match(regex)[0].toLowerCase();
+            if (document.getElementsByClassName('movemenu').length > 0 && calculating == false && typeof($('.movemenu').attr('analysed')) == "undefined") {
+                console.log(player.name + " VS " + ennemi.name);
+                calculating = true;
+                $('.movemenu').attr('analysed', 'true');
+                checkAttacks();
             }
         }
         if (typeof($('.lstatbar').children().first().html()) != 'undefined' && document.getElementsByClassName('switchmenu').length > 0) {
@@ -31,25 +28,46 @@ let efficiency,
 
 function checkAttacks () {
     getEnnemiStats(ennemi.name).then(function(){
-        $(".movebuttons-nomax").children().each(function(){
-            let elemType = $(this).find('.type');
-            if (typeof(elemType.attr('base')) == 'undefined') {
-                elemType.attr('base',elemType.html());
-            }
-            getEfficiency(elemType.attr('base'), ennemi.infos, elemType);
-        });
-        $(".movebuttons-max").children().each(function(){
-            let elemType = $(this).find('.type');
-            if (typeof(elemType.attr('base')) == 'undefined') {
-                elemType.attr('base',elemType.html());
-            }
-            if (ennemi.infos.types.length == 0) {
-                elemType.html(elemType.attr('base') + "<img class='editArrow' src='" + extPath + "images/null.png'>");
-            }
-            else {
+        if ($('.movebuttons-nomax').length > 0) {
+            $(".movebuttons-nomax").children().each(function(){
+                let elemType = $(this).find('.type');
+                if (typeof(elemType.attr('base')) == 'undefined') {
+                    elemType.attr('base',elemType.html());
+                }
+                if (ennemi.infos.types.length == 0) {
+                    elemType.html(elemType.attr('base') + "<img class='editArrow' src='" + extPath + "images/null.png'>");
+                }
                 getEfficiency(elemType.attr('base'), ennemi.infos, elemType);
-            }
-        });
+            });
+            $(".movebuttons-max").children().each(function(){
+                let elemType = $(this).find('.type');
+                console.log(elemType.attr('base'), ennemi.infos, elemType);
+                if (typeof(elemType.attr('base')) == 'undefined') {
+                    elemType.attr('base',elemType.html());
+                }
+                if (ennemi.infos.types.length == 0) {
+                    elemType.html(elemType.attr('base') + "<img class='editArrow' src='" + extPath + "images/null.png'>");
+                }
+                else {
+                    getEfficiency(elemType.attr('base'), ennemi.infos, elemType);
+                }
+            });
+        }
+        else {
+            $(".movemenu").children().each(function(){
+                let elemType = $(this).find('.type');
+                console.log(elemType.attr('base'), ennemi.infos, elemType);
+                if (typeof(elemType.attr('base')) == 'undefined') {
+                    elemType.attr('base',elemType.html());
+                }
+                if (ennemi.infos.types.length == 0) {
+                    elemType.html(elemType.attr('base') + "<img class='editArrow' src='" + extPath + "images/null.png'>");
+                }
+                else {
+                    getEfficiency(elemType.attr('base'), ennemi.infos, elemType);
+                }
+            });
+        }
         setTimeout(function(){
             calculating = false;
         }, 200)
@@ -220,13 +238,13 @@ function getTeamWeakness () {
 function sanitizePokeName (pokeName) {
     switch (pokeName) {
         case "mr. rime":
-            return "mr-mime";
+            return "mr-rime";
 
         case "mr. mime":
             return "mr-mime";
 
         case "mime-jr":
-            return "mr-mime";
+            return "mime-jr";
 
         case "lycanroc":
             return "lycanroc-midday";
@@ -255,8 +273,8 @@ function sanitizePokeName (pokeName) {
         case "tapu fini":
             return "tapu-fini";
 
-        case "mime-jr":
-            return "mr-mime";
+        case "toxtricity":
+            return "toxtricity-amped";
 
         case "lycanroc":
             return "lycanroc-midday";
@@ -278,6 +296,8 @@ function sanitizePokeName (pokeName) {
 
         case "tapu bulu":
             return "tapu-bulu";
+        
+        
             
         default:
             return pokeName;
