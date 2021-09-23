@@ -6,7 +6,7 @@ let efficiency,
     ennemi = {name: null, infos: null},
     calculating = false,
     typeAppened = false,
-    player = {name: null, infos: null, team: [], moves: {efficientMax: [], goodMax: [], efficient: [], good: [], normal: [], weak: []}, aiTeam: {superResist: [], resist: [], normal: [], weak: []}},
+    player = {name: null, infos: null, team: [], moves: {efficientMax: [], goodMax: [], efficient: [], good: [], normal: [], weak: []}, aiTeam: {superResist: [], resist: [], normal: [], weak: [], active: null}},
     extPath = "chrome-extension://" + chrome.runtime.id + "/",
     intCheck = setInterval(function(){
         if (typeof($('.lstatbar').children().first().html()) != 'undefined' && typeof($('.rstatbar').children().first().html()) != 'undefined') {
@@ -25,6 +25,11 @@ let efficiency,
                 getEnnemiStats(ennemi.name);
             }
             getTeam();
+            if (typeAppened == false) {
+                $('.battle').append("<a class='typeLink' target='_blank' href='https://www.pokepedia.fr/Table_des_types'>TYPES</a>");
+                $('.battle').append("<div id='app-cover'><div class='row'><div class='toggle-button-cover'><div class='button r' id='button-3'><input id='AI' type='checkbox' class='checkbox'><div class='knobs'></div><div class='layer'></div></div></div></div></div>");
+                typeAppened = true;
+            }
         }
         if ((document.getElementsByClassName('movemenu').length == 0 || $('.movemenu').attr('analysed') == 'true') && $('.switchmenu').attr('analysed') == 'true' && $('#AI').is(':checked')) {
             aiPlay();
@@ -50,6 +55,7 @@ function emptyTeam () {
     player.aiTeam.resist = [];
     player.aiTeam.normal = [];
     player.aiTeam.weak = [];
+    player.aiTeam.active = null;
 }
 
 function checkAttacks () {
@@ -136,85 +142,85 @@ async function getEfficiency (attack, targetTypes, targetElem, moveName, maxed) 
         let tempEff = 0,
             efficient = true,
             movePower = null;
+        $.ajax({
+            url: "https://pokeapi.co/api/v2/move/" + moveName.toLowerCase().replaceAll(' ', '-'),
+            type: 'GET',
+            success: (result) => {
+                movePower = result.power;
+            },
+            error: () => {
+                console.log("Can't find attack " + moveName + " on PokeAPI");
+            }
+        }).then(function(){
             $.ajax({
-                url: "https://pokeapi.co/api/v2/move/" + moveName.toLowerCase().replaceAll(' ', '-'),
+                url: "https://pokeapi.co/api/v2/type/" + attack.toLowerCase(),
                 type: 'GET',
-                success: (result) => {
-                    movePower = result.power;
-                },
-                error: () => {
-                    console.log("Can't find attack " + moveName + " on PokeAPI");
+                success: (attackInfos) => {
+                    targetTypes.types.forEach(defType => {
+                        attackInfos.damage_relations.no_damage_to.forEach(efficientTo => {
+                            if (efficientTo.name == defType.type.name) {
+                                tempEff = -3
+                                efficient = false;
+                            }
+                        });
+                        attackInfos.damage_relations.double_damage_to.forEach(efficientTo => {
+                            if (efficientTo.name == defType.type.name && efficient) {
+                                tempEff++;
+                            }
+                        });
+                        attackInfos.damage_relations.half_damage_to.forEach(weakTo => {
+                            if (weakTo.name == defType.type.name && efficient) {
+                                tempEff--;
+                            }
+                        });
+                    });
+                    if (movePower != null && movePower > 0 && !targetElem.hasClass('disabled')) {
+                        if (tempEff == 2 && maxed) {
+                            player.moves.efficientMax.push(targetElem);
+                        }
+                        else if (tempEff == 1 && maxed) {
+                            player.moves.goodMax.push(targetElem);
+                        }
+                        else if (tempEff == 2) {
+                            player.moves.efficient.push(targetElem);
+                        }
+                        else if (tempEff == 1) {
+                            player.moves.good.push(targetElem);
+                        }
+                        else if (tempEff < 0) {
+                            player.moves.weak.push(targetElem);
+                        }
+                        else {
+                            player.moves.normal.push(targetElem);
+                        }
+                    }
+                    switch (tempEff) {
+                        case 2:
+                            targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/green.png'><img class='editArrow' src='" + extPath + "images/green.png'>");
+                            break;
+        
+                        case 1:
+                            targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/green.png'>");
+                            break;
+        
+                        case -1:
+                            targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/red.png'>");
+                            break;
+    
+                        case -2:
+                            targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/red.png'><img class='editArrow' src='" + extPath + "images/red.png'>");
+                            break;
+    
+                        case -3:
+                            targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/cross.png'>");
+                            break;
+                    
+                        default:
+                            break;
+                    }
+                    resolve();
                 }
             });
-
-        $.ajax({
-            url: "https://pokeapi.co/api/v2/type/" + attack.toLowerCase(),
-            type: 'GET',
-            success: (attackInfos) => {
-                targetTypes.types.forEach(defType => {
-                    attackInfos.damage_relations.no_damage_to.forEach(efficientTo => {
-                        if (efficientTo.name == defType.type.name) {
-                            tempEff = -3
-                            efficient = false;
-                        }
-                    });
-                    attackInfos.damage_relations.double_damage_to.forEach(efficientTo => {
-                        if (efficientTo.name == defType.type.name && efficient) {
-                            tempEff++;
-                        }
-                    });
-                    attackInfos.damage_relations.half_damage_to.forEach(weakTo => {
-                        if (weakTo.name == defType.type.name && efficient) {
-                            tempEff--;
-                        }
-                    });
-                });
-                if (movePower != null && movePower > 0 && !targetElem.hasClass('disabled')) {
-                    if (tempEff > 1 && maxed) {
-                        player.moves.efficientMax.push(targetElem);
-                    }
-                    else if (tempEff == 1 && maxed) {
-                        player.moves.goodMax.push(targetElem);
-                    }
-                    else if (tempEff > 1) {
-                        player.moves.efficient.push(targetElem);
-                    }
-                    else if (tempEff == 1) {
-                        player.moves.good.push(targetElem);
-                    }
-                    else if (tempEff < 0) {
-                        player.moves.weak.push(targetElem);
-                    }
-                    else {
-                        player.moves.normal.push(targetElem);
-                    }
-                }
-                switch (tempEff) {
-                    case 2:
-                        targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/green.png'><img class='editArrow' src='" + extPath + "images/green.png'>");
-                        break;
-    
-                    case 1:
-                        targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/green.png'>");
-                        break;
-    
-                    case -1:
-                        targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/red.png'>");
-                        break;
-
-                    case -2:
-                        targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/red.png'><img class='editArrow' src='" + extPath + "images/red.png'>");
-                        break;
-
-                    case -3:
-                        targetElem.html(targetElem.attr('base') + "<img class='editArrow' src='" + extPath + "images/cross.png'>");
-                        break;
-                
-                    default:
-                        break;
-                }
-                resolve();
-            }
         });
     });
 }
@@ -289,6 +295,12 @@ function getTeamWeakness () {
                             console.log($(this).html());
                         }
                         if (sanitizePokeName($(this).html().match(regexTeam)[0].toLowerCase()) == teamPkmn.species.name) {
+                            $(this).attr('pkmn', $(this).html().match(regexTeam)[0].toLowerCase());
+                            if ($(this).hasClass('disabled')) {
+                                $(this).attr('weakness', tempWeak);
+                                $(this).attr('resist', tempResist);
+                                player.aiTeam.active = $(this);
+                            }
                             if (tempWeak >= 2) {
                                 if (!$(this).hasClass('disabled')) {
                                     player.aiTeam.weak.push($(this));
@@ -309,13 +321,7 @@ function getTeamWeakness () {
                             }
                             else if (tempResist > 0) {
                                 if (!$(this).hasClass('disabled')) {
-                                    console.log('______________');
-                                    console.log($(this));
-                                    console.log('RESIST');
-                                    console.log($(this).hasClass('disabled'));
-                                    console.log('______________');
                                     player.aiTeam.resist.push($(this));
-                                    console.log(player.aiTeam);
                                 }
                                 $(this).append("<div class='editTeamArrow'><img src='" + extPath + "images/green.png'></div>");
                             }
@@ -326,11 +332,6 @@ function getTeamWeakness () {
                             }
                         }
                     });
-                    if (typeAppened == false) {
-                        $('.battle').append("<a class='typeLink' target='_blank' href='https://www.pokepedia.fr/Table_des_types'>TYPES</a>");
-                        $('.battle').append("<div id='app-cover'><div class='row'><div class='toggle-button-cover'><div class='button r' id='button-3'><input id='AI' type='checkbox' class='checkbox'><div class='knobs'></div><div class='layer'></div></div></div></div></div>");
-                        typeAppened = true;
-                    }
                 }, 300);
             }
         }, 300);
@@ -340,56 +341,44 @@ function getTeamWeakness () {
 function aiPlay () {
     console.log(player.moves);
     console.log(player.aiTeam);
-    if (document.getElementsByClassName('movemenu').length > 0) {
-        if (player.moves.efficientMax.length > 0) {
-            randomUse(player.moves.efficientMax);
-        }
-        else if (player.moves.efficient.length > 0) {
-            randomUse(player.moves.efficient);
-        }
-        else if (player.moves.goodMax.length > 0) {
-            randomUse(player.moves.goodMax);
-        }
-        else if (player.moves.good.length > 0) {
-            randomUse(player.moves.good);
-        }
-        else if (player.aiTeam.superResist.length > 0) {
-            randomUse(player.aiTeam.superResist);
-        }
-        else if (player.aiTeam.resist.length > 0) {
-            randomUse(player.aiTeam.resist);
-        }
-        else if (player.moves.normal.length > 0) {
-            randomUse(player.moves.normal);
-        }
-        else if (player.aiTeam.normal.length > 0) {
-            randomUse(player.aiTeam.normal);
-        }
-        else if (player.moves.weak.length > 0) {
-            randomUse(player.moves.weak);
-        }
-        else {
-            randomUse(player.aiTeam.weak);
-        }
+    if (player.moves.efficientMax.length > 0) {
+        randomUse(player.moves.efficientMax);
+    }
+    else if (player.moves.efficient.length > 0) {
+        randomUse(player.moves.efficient);
+    }
+    else if (player.moves.goodMax.length > 0) {
+        randomUse(player.moves.goodMax);
+    }
+    else if (player.moves.good.length > 0) {
+        randomUse(player.moves.good);
+    }
+    if (parseInt(player.aiTeam.active.attr('resist')) > 0 && player.moves.normal.length > 0) {
+        randomUse(player.moves.normal);
+    }
+    else if (player.aiTeam.superResist.length > 0) {
+        randomUse(player.aiTeam.superResist);
+    }
+    else if (player.aiTeam.resist.length > 0) {
+        randomUse(player.aiTeam.resist);
+    }
+    else if (player.moves.normal.length > 0) {
+        randomUse(player.moves.normal);
+    }
+    else if (player.aiTeam.normal.length > 0) {
+        randomUse(player.aiTeam.normal);
+    }
+    else if (player.moves.weak.length > 0) {
+        console.log('nothing great to use...');
+        randomUse(player.moves.weak);
     }
     else {
-        if (player.aiTeam.superResist.length > 0) {
-            randomUse(player.aiTeam.superResist);
-        }
-        else if (player.aiTeam.resist.length > 0) {
-            randomUse(player.aiTeam.resist);
-        }
-        else if (player.aiTeam.resist.length > 0) {
-            randomUse(player.aiTeam.normal);
-        }
-        else {
-            randomUse(player.aiTeam.weak);
-        }
+        console.log('nothing great to switch to...');
+        randomUse(player.aiTeam.weak);
     }
 }
 
 function randomUse(array) {
-    console.log(array);
     let currentIndex = array.length,  randomIndex;
     while (currentIndex != 0) {
         randomIndex = Math.floor(Math.random() * currentIndex);
@@ -397,6 +386,7 @@ function randomUse(array) {
         [array[currentIndex], array[randomIndex]] = [
         array[randomIndex], array[currentIndex]];
     }
+    console.log(array[0]);
     array[0].click();
 }
 
