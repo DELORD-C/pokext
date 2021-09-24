@@ -50,7 +50,7 @@ let efficiency,
         }
         if ($('.battle-controls > p > button').length == 3) {
             if ($('.battle-controls > p > button').last().attr('name') == 'goToEnd') {
-                $('.battle-controls > p > button').last().click();
+                // $('.battle-controls > p > button').last().click();
             }
         }
     }, 1000);
@@ -412,7 +412,7 @@ function aiPlay () {
         useBestMove(false, player.aiTeam.superResist);
         console.log('Switching to a super resistant pokemon !')
     }
-    else if (player.aiTeam.resist.length > 0) {
+    else if (player.aiTeam.resist.length > 0 && player.aiTeam.active != null && parseInt(player.aiTeam.active.attr('resist')) > 0 ) {
         useBestMove(false, player.aiTeam.resist);
         console.log('Switching to a resistant pokemon !')
     }
@@ -460,11 +460,17 @@ function randomSwitch () {
 }
 
 function getEnnemiName(){
-    ennemi.name = $('.backdrop').next().next().next().next().children().first().children().first().attr('src').match(regex)[0];
+    ennemi.name = $('.backdrop').next().next().next().next().children().first().children().last().attr('src').match(regex)[0];
+    if(ennemi.name.match(/-f$/) != null) {
+        ennemi.name = ennemi.name.slice(0, -2)
+    }
 }
 
 function getPlayerName(){
-    player.name = $('.backdrop').next().next().next().next().children().last().children().first().attr('src').match(regex)[0];
+    player.name = $('.backdrop').next().next().next().next().children().last().children().last().attr('src').match(regex)[0];
+    if(player.name.match(/-f$/) != null) {
+        player.name = player.name.slice(0, -2)
+    }
 }
 
 function resetAI () {
@@ -511,7 +517,8 @@ function sanitizePokeName (pokeName) {
         "mime-jr": "mime-jr",
         "mr. mime": "mr-mime",
         "mr. rime": "mr-rime",
-        "aegislash": "aegislash-shield"
+        "aegislash": "aegislash-shield",
+        "kommoo": "kommo-o"
     };
     if (typeof(pkmnList[pokeName]) != 'undefined') {
         return pkmnList[pokeName];
