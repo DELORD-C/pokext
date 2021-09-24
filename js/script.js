@@ -10,6 +10,12 @@ let efficiency,
     player = {name: null, infos: null, team: [], moves: {efficientMax: [], goodMax: [], efficient: [], good: [], normalMax: [], normal: [], weak: []}, aiTeam: {superResist: [], resist: [], normal: [], weak: [], active: null}},
     extPath = "chrome-extension://" + chrome.runtime.id + "/",
     intCheck = setInterval(function(){
+        if ($('.setchart').length > 0) {
+            $('.smogonLink').remove();
+            $('.setchart').each(function(){
+                $(this).find('.setcol-icon').append("<a target='_blank' class='smogonLink' href='https://www.smogon.com/dex/ss/pokemon/" + $('.setcell-pokemon > input').val().toLowerCase() + "/'>Smogon</a>")
+            });
+        }
         if ($('.typeLink').length == 0 && $('.battle').length > 0) {
             $('.battle').append("<a class='typeLink' target='_blank' href='https://www.pokepedia.fr/Table_des_types'>TYPES</a>");
             $('.battle').append("<div id='app-cover'><div class='row'><div class='toggle-button-cover'><div class='button r' id='button-3'><input id='AI' type='checkbox' class='checkbox'><div class='knobs'></div><div class='layer'></div></div></div></div></div>");
@@ -34,7 +40,11 @@ let efficiency,
             }
             getTeam();
         }
-        if ((document.getElementsByClassName('movemenu').length == 0 || $('.movemenu').attr('analysed') == 'true') && $('.switchmenu').attr('analysed') == 'true' && $('#AI').is(':checked') && calculating == false) {
+        if($('.switchmenu').length > 0 && typeof($('.lstatbar').children().first().html()) == 'undefined' && typeof($('.rstatbar').children().first().html()) == 'undefined' && $('#AI').is(':checked') && calculating == false) {
+            console.log('There is no pokemon alive, random switching.');
+            randomSwitch();
+        }
+        else if ((document.getElementsByClassName('movemenu').length == 0 || $('.movemenu').attr('analysed') == 'true') && $('.switchmenu').attr('analysed') == 'true' && $('#AI').is(':checked') && calculating == false) {
             setTimeout(function(){
                 aiPlay();
             }, 500)
@@ -444,6 +454,12 @@ function useBestMove(maxed, array) {
     }
 }
 
+function randomSwitch () {
+    $('.switchmenu > button').each(function(){
+        $(this).click();
+    });
+}
+
 function resetAI () {
     if (reset == false) {
         console.log('reseting...');
@@ -487,7 +503,8 @@ function sanitizePokeName (pokeName) {
         "lycanroc": "lycanroc-midday",
         "mime-jr": "mime-jr",
         "mr. mime": "mr-mime",
-        "mr. rime": "mr-rime"
+        "mr. rime": "mr-rime",
+        "aegislash": "aegislash-shield"
     };
     if (typeof(pkmnList[pokeName]) != 'undefined') {
         return pkmnList[pokeName];
