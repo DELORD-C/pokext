@@ -2,7 +2,7 @@ let efficiency,
     reset = false,
     dyna = false,
     itteration = 1,
-    regex = /^(\w| |-|_|:|\.)+(?= <img | <small|$)/g,
+    regex = /(?!\/)(\w*)(?=.gif$)/g,
     regexAttack = /^(\w| |-|_|:|\.)+(?=<br>)/g,
     regexTeam = /(?!<\/span>)(\w| |-|_|:|\.)+(?=<span|$|<img |<div )/g,
     calculating = false,
@@ -23,9 +23,8 @@ let efficiency,
             player = {name: null, infos: null, team: [], moves: {efficientMax: [], goodMax: [], efficient: [], good: [], normal: [], weak: []}, aiTeam: {superResist: [], resist: [], normal: [], weak: [], active: null}};
         }
         if (typeof($('.lstatbar').children().first().html()) != 'undefined' && typeof($('.rstatbar').children().first().html()) != 'undefined') {
-            ennemi.name = $('.lstatbar').children().first().html().match(regex)[0].toLowerCase();
-            console.log($('.rstatbar').children().first().html());
-            player.name = $('.rstatbar').children().first().html().match(regex)[0].toLowerCase();
+            getEnnemiName();
+            getPlayerName();
             if (document.getElementsByClassName('movemenu').length > 0 && calculating == false && typeof($('.movemenu').attr('analysed')) == "undefined") {
                 console.log(player.name + " VS " + ennemi.name);
                 calculating = true;
@@ -35,7 +34,7 @@ let efficiency,
         }
         if (typeof($('.lstatbar').children().first().html()) != 'undefined' && document.getElementsByClassName('switchmenu').length > 0) {
             if (ennemi.infos == null) {
-                ennemi.name = $('.lstatbar').children().first().html().match(regex)[0].toLowerCase();
+                getEnnemiName();
                 getEnnemiStats(ennemi.name);
             }
             getTeam();
@@ -458,6 +457,14 @@ function randomSwitch () {
     $('.switchmenu > button').each(function(){
         $(this).click();
     });
+}
+
+function getEnnemiName(){
+    ennemi.name = $('.backdrop').next().next().next().next().children().first().children().first().attr('src').match(regex)[0];
+}
+
+function getPlayerName(){
+    player.name = $('.backdrop').next().next().next().next().children().last().children().first().attr('src').match(regex)[0];
 }
 
 function resetAI () {
