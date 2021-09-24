@@ -2,7 +2,7 @@ let efficiency,
     reset = false,
     dyna = false,
     itteration = 1,
-    regex = /^(\w| |-|_|:|\.)+(?= <img | <small)/g,
+    regex = /^(\w| |-|_|:|\.)+(?= <img | <small|$)/g,
     regexAttack = /^(\w| |-|_|:|\.)+(?=<br>)/g,
     regexTeam = /(?!<\/span>)(\w| |-|_|:|\.)+(?=<span|$|<img |<div )/g,
     calculating = false,
@@ -18,6 +18,7 @@ let efficiency,
         }
         if (typeof($('.lstatbar').children().first().html()) != 'undefined' && typeof($('.rstatbar').children().first().html()) != 'undefined') {
             ennemi.name = $('.lstatbar').children().first().html().match(regex)[0].toLowerCase();
+            console.log($('.rstatbar').children().first().html());
             player.name = $('.rstatbar').children().first().html().match(regex)[0].toLowerCase();
             if (document.getElementsByClassName('movemenu').length > 0 && calculating == false && typeof($('.movemenu').attr('analysed')) == "undefined") {
                 console.log(player.name + " VS " + ennemi.name);
@@ -365,7 +366,7 @@ function getTeamWeakness () {
 }
 
 function aiPlay () {
-    console.log(player.moves);
+    // console.log(player.moves);
     // console.log(player.aiTeam);
     if ($('.status .good').length > 0 && $('.status .good').html() == 'Dynamaxed') {
         dyna = true;
@@ -418,7 +419,7 @@ function aiPlay () {
         useBestMove(false, player.moves.weak);
         console.log('Using weak move...')
     }
-    else {
+    else if (player.aiTeam.weak.length > 0) {
         useBestMove(false, player.aiTeam.weak);
         console.log('Switching to a weak pokemon...')
     }
@@ -472,7 +473,7 @@ function sanitizePokeName (pokeName) {
         "meowstic": "meowstic-male",
         "gourgeist": "gourgeist-average",
         "indeedee": "indeedee-female",
-        "tornadus": "tornadus-therian",
+        "tornadus": "tornadus-incarnate",
         "landorus": "landorus-incarnate",
         "toxtricity": "toxtricity-amped",
         "tapu fini": "tapu-fini",
@@ -482,7 +483,7 @@ function sanitizePokeName (pokeName) {
         "type: null": "type-null",
         "urshifu": "urshifu-rapid-strike",
         "mimikyu": "mimikyu-busted",
-        "thundurus": "thundurus-therian",
+        "thundurus": "thundurus-incarnate",
         "lycanroc": "lycanroc-midday",
         "mime-jr": "mime-jr",
         "mr. mime": "mr-mime",
