@@ -40,7 +40,7 @@
 /* SPECIAL KNOBS */
 #app-cover {
     position: absolute;
-    top: 0;
+    top: 60px;
     left: 5px;
     margin: 0;
     counter-reset: button-counter;
@@ -55,8 +55,6 @@
 {
     display: table-cell;
     position: relative;
-    width: 200px;
-    height: 140px;
     box-sizing: border-box;
 }
 
